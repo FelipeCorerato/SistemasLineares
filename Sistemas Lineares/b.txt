@@ -1,0 +1,4 @@
+2flal + 2poff + 3caio + 1du = 0
+-4flal + 1poff + 1caio + 0du = 2
+1flal + 2poff - 2caio + 2du = 5 
+2flal + 2poff + 2caio + 2du = -1

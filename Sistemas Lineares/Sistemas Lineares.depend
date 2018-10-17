@@ -1,0 +1,16 @@
+# depslib dependency file v1.0
+1539543296 source:c:\users\nicolas\desktop\sistemas_lineares\sistemas lineares\main.c
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+
+1539563588 source:c:\users\fábio\documents\github\sistemas_lineares\sistemas lineares\main.c
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+
+1539599382 source:z:\4ose\mali\sistemas_lineares\sistemas lineares\main.c
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+
