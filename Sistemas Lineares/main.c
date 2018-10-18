@@ -39,7 +39,7 @@ int equalsStr (char* a, char* b)
     return 0;
 }
 
-void freeMatriz (void** mat, int tamanho)
+void limparMatriz (void** mat, int tamanho)
 {
     int i;
     for(i = 0; i < tamanho; i++)
@@ -48,18 +48,18 @@ void freeMatriz (void** mat, int tamanho)
     free(mat);
 }
 
-void freeNo (No* no)
+void limparNo (No* no)
 {
     if(no -> prox == NULL)
         free(no);
     else
     {
         No* aux = no -> prox;
-        freeNo(aux);
+        limparNo(aux);
     }
 }
 
-void freeLista (Lista* lis)
+void limparLista (Lista* lis)
 {
     free(lis -> inicio);
     free(lis -> ult);
@@ -67,12 +67,12 @@ void freeLista (Lista* lis)
     free(lis);
 }
 
-void freeSistema(Sistema* sis)
+void limparSistema(Sistema* sis)
 {
-    freeLista(sis -> lisIncognitas);
-    freeLista(sis -> lisEqua);
+    limparLista(sis -> lisIncognitas);
+    limparLista(sis -> lisEqua);
 
-    freeMatriz((void**)sis -> matrizCoeficientes, sis -> qtdIcog);
+    limparMatriz((void**)sis -> matrizCoeficientes, sis -> qtdIcog);
 
     free(sis -> linhaResultados);
     free(sis);
@@ -92,7 +92,7 @@ Lista* initListaStr ()
     return lis;
 }
 
-int jaTem (Lista* lis, void* rInfo)
+int tem (Lista* lis, void* rInfo)
 {
     No* aux = lis -> inicio;
 
@@ -110,7 +110,7 @@ int jaTem (Lista* lis, void* rInfo)
 //Insere no ultimo
 int insere (Lista* lis, void* nInfo)
 {
-    if(jaTem(lis, nInfo))
+    if(tem(lis, nInfo))
         return 0;
 
     if(lis -> inicio == NULL)
@@ -177,7 +177,7 @@ void printar (Lista* lis)
     No* aux = lis -> inicio;
 
     char* ret = (char*)malloc(100000 * sizeof(char));
-    strcpy(ret, "{");
+    strcpy(ret, "|");
 
     while(aux != NULL)
     {
@@ -187,7 +187,7 @@ void printar (Lista* lis)
         if(aux != NULL)
             strcat(ret, ", ");
     }
-    strcat(ret, "}");
+    strcat(ret, "|");
 
     printf("%s", ret);
 }
@@ -222,7 +222,7 @@ void* getElemento (Lista* lis, int pos)
 
 int getPos(Lista* lis, void* nInfo)
 {
-    if(!jaTem(lis, nInfo))
+    if(!tem(lis, nInfo))
         return -1;
 
     int cont = 0;
@@ -319,7 +319,7 @@ float det (float** matriz, int ordem)
         mAux = formarComplementar(matriz,i+1 , j+1,ordem);
         determinante += linha[j] * aux * det(mAux, ordem-1);
         //Descarta depois de usar;
-        freeMatriz((void**)mAux, ordem -1);
+        limparMatriz((void**)mAux, ordem -1);
     }
 
     free(linha);
@@ -370,7 +370,7 @@ float* resolverSistema (Sistema* sis)
         aux = matrizIcognita(sis -> matrizCoeficientes, sis -> linhaResultados, i+1, sis -> qtdIcog);
         determinanteIcog = det(aux, sis->qtdIcog);
 
-        freeMatriz((void**)aux, sis -> qtdIcog);//Lembrar de descartar o que não for mais usada;
+        limparMatriz((void**)aux, sis -> qtdIcog);//Lembrar de descartar o que não for mais usada;
         ret[i] = determinanteIcog/determinanteC;
     }
 
@@ -619,7 +619,7 @@ void resolveSistema ()
     printaSistema(&sis);
     printResultado(&sis);
 
-    freeSistema(&sis);
+    limparSistema(&sis);
 }
 
 int main()
