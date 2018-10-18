@@ -20,8 +20,8 @@ typedef
 
 typedef
     struct Sistema {
-        int qtdIcog;
-        Lista* lisIncognitas;
+        int quantasInc;
+        Lista* lisInc;
         Lista* lisEqua;
         float** matrizCoeficientes;
         float* linhaResultados;
@@ -69,17 +69,17 @@ void limparLista (Lista* lis)
 
 void limparSistema(Sistema* sis)
 {
-    limparLista(sis -> lisIncognitas);
+    limparLista(sis -> lisInc);
     limparLista(sis -> lisEqua);
 
-    limparMatriz((void**)sis -> matrizCoeficientes, sis -> qtdIcog);
+    limparMatriz((void**)sis -> matrizCoeficientes, sis -> quantasInc);
 
     free(sis -> linhaResultados);
     free(sis);
 }
 
 //inicia uma lista de string
-Lista* initListaStr ()
+Lista* novaListaStr ()
 {
     Lista* lis = (Lista*)malloc(sizeof(Lista));
 
@@ -139,7 +139,7 @@ int insere (Lista* lis, void* nInfo)
     return 1;
 }
 
-int remova (Lista* lis, void* rInfo)
+int remover (Lista* lis, void* rInfo)
 {
     No* aux = lis-> inicio;
 
@@ -172,7 +172,7 @@ int remova (Lista* lis, void* rInfo)
     return 0;
 }
 
-void printar (Lista* lis)
+void printLis (Lista* lis)
 {
     No* aux = lis -> inicio;
 
@@ -241,8 +241,9 @@ int getPos(Lista* lis, void* nInfo)
 }
 
 
-//i é a linha e j é a coluna
-float** formarComplementar (float** matriz, int i, int j, int ordem) {
+//i é a linha e j é a coluna (forma complementar)
+float** formaComp (float** matriz, int i, int j, int ordem)
+{
     int a = 0;
     int b = 0;
     int c = 0;
@@ -260,7 +261,6 @@ float** formarComplementar (float** matriz, int i, int j, int ordem) {
     {
         for(b = 0; b < ordem; b++)
         {
-            //Significa que não é uma das linhas a serem descartadas
             if(a != i -1 && b != j -1)
             {
                 *(*(mComplementar + c)+ d) = *(*(matriz + a) + b);
@@ -273,14 +273,12 @@ float** formarComplementar (float** matriz, int i, int j, int ordem) {
 
                     break;
                 }
-                else{
+                else
                     c++;
-                }
-
             }
-            else{}//Não faz nada, o for já incrementará a posição da matriz original;
+            else{}//o for incrementa a posição da matriz original então isso não faz nada
         }
-        //quer dizer que acabou;
+        //end
         if(d == ordem -1)
             break;
     }
@@ -288,7 +286,7 @@ float** formarComplementar (float** matriz, int i, int j, int ordem) {
     return mComplementar;
 }
 
-//Método para calcular determinante
+//calcula determinante
 float det (float** matriz, int ordem)
 {
     float* linha;
@@ -297,8 +295,8 @@ float det (float** matriz, int ordem)
     int j=0;
     float determinante = 0;
     int aux;
-    //Eh uma matriz de ordem 1 portanto tem somente um elemento, o primeiro
-    //A determinante eh igual ao elemento;
+    //matriz de ordem um, ou seja
+    //det é igual a elemento
     if(ordem == 1)
         return *(*matriz);
 
@@ -316,9 +314,8 @@ float det (float** matriz, int ordem)
         else
             aux = -1;
 
-        mAux = formarComplementar(matriz,i+1 , j+1,ordem);
+        mAux = formaComp(matriz,i+1 , j+1,ordem);
         determinante += linha[j] * aux * det(mAux, ordem-1);
-        //Descarta depois de usar;
         limparMatriz((void**)mAux, ordem -1);
     }
 
@@ -326,8 +323,8 @@ float det (float** matriz, int ordem)
     return determinante;
 }
 
-//Forma a matriz da icógnita no Teorema de Cramer;
-float** matrizIcognita (float** coeficientes, float* resultados, int pos, int qtd)
+//retorna uma matriz feita por Cramer
+float** matrizDeInc (float** coeficientes, float* resultados, int pos, int qtd)
 {
     int i, j, a = 0;
 
@@ -339,12 +336,12 @@ float** matrizIcognita (float** coeficientes, float* resultados, int pos, int qt
     {
         for(j = 0; j < qtd; j++)
         {
-            if(j == pos -1) //Se estiver na posição correspondente, colocamos o valor dos resultados;
+            if(j == pos -1)
             {
                 ret[i][j] = resultados[a];
                 a++;
             }
-            else //Se não, copia da matriz dos coeficientes;
+            else
                 ret[i][j] = coeficientes[i][j];
         }
     }
@@ -352,62 +349,62 @@ float** matrizIcognita (float** coeficientes, float* resultados, int pos, int qt
     return ret;
 }
 
-//Recebe um ponteiro de Sistema pelo parâmetro e devolve um vetor com os valores das icógnitas em ordem;
+//recebe um ponteiro de sistema e devolve um vetor de incognitas
 float* resolverSistema (Sistema* sis)
 {
     int i;
-    float determinanteC;
-    float determinanteIcog;
+    float detC;
+    float detInc;
     float** aux;
-    float* ret = (float*)malloc(sis -> qtdIcog * sizeof(float));
+    float* ret = (float*)malloc(sis -> quantasInc * sizeof(float));
 
-    determinanteC = det(sis -> matrizCoeficientes, sis -> qtdIcog);
-    if(determinanteC == 0)
+    detC = det(sis -> matrizCoeficientes, sis -> quantasInc);
+    if(detC == 0)
         return NULL;
 
-    for(i = 0; i < sis -> qtdIcog; i++)
+    for(i = 0; i < sis -> quantasInc; i++)
     {
-        aux = matrizIcognita(sis -> matrizCoeficientes, sis -> linhaResultados, i+1, sis -> qtdIcog);
-        determinanteIcog = det(aux, sis->qtdIcog);
+        aux = matrizDeInc(sis -> matrizCoeficientes, sis -> linhaResultados, i+1, sis -> quantasInc);
+        detInc = det(aux, sis->quantasInc);
 
-        limparMatriz((void**)aux, sis -> qtdIcog);//Lembrar de descartar o que não for mais usada;
-        ret[i] = determinanteIcog/determinanteC;
+        limparMatriz((void**)aux, sis -> quantasInc);
+        ret[i] = detInc/detC;
     }
 
     return ret;
 }
 
-void printaSistema (Sistema* sis)
+void printarSistema (Sistema* sis)
 {
     int i;
     Lista* lisE = sis -> lisEqua;
 
-    printf("\n{\n");
-    for(i = 0; i < sis -> qtdIcog; i++)
+    printf("\n");
+    for(i = 0; i < sis -> quantasInc; i++)
         printf("%s\n", (char*)getElemento(lisE, i));
 
-    printf("}");
+    printf("");
 }
 
 void printResultado (Sistema* sis)
 {
     int i;
-    Lista* lis = sis -> lisIncognitas;
+    Lista* lis = sis -> lisInc;
     float* resolucao = resolverSistema(sis);
 
     if(resolucao == NULL)
     {
-        printf("Sistema sem solucao definida, eh SPI ou SI");
+        printf("O sistema é SPI ou SI, ou seja não possui solução definida.");
         return;
     }
 
-    printf("\nSolucao: ");
-    for(i = 0; i < sis -> qtdIcog; i++)
+    printf("\nResposta dos coeficientes: ");
+    for(i = 0; i < sis -> quantasInc; i++)
     {
         char * a = (char*)getElemento(lis, i);
         printf("%s = %.3f", a, resolucao[i]);
 
-        if(i + 1 < sis -> qtdIcog)
+        if(i + 1 < sis -> quantasInc)
             printf(", ");
     }
 
@@ -462,52 +459,50 @@ void extraiCoeficientes(Sistema* sis, char* nome)
 {
     //para deixar mais facil a resolucao:
     sis->lisEqua = separaEquacoes(nome, sis);
-    sis -> qtdIcog = sis -> lisEqua -> qtd;
+    sis -> quantasInc = sis -> lisEqua -> qtd;
 
     //inicializar:
-    Lista* lis = initListaStr();
+    Lista* lis = novaListaStr();
 
     int i, j, n,
         inseriu = 0, // se o item foi inserido ou nao:
         posVariavel = 0, //variavel para contNolar quantas variaveis ja foram inseridas na lista
         cont = 0, //insere caracteres nas variáveis
-        contC = 0, //Contador responsavel por inserir caracteres nos coeficientes
+        contC = 0, //insere caracteres nos coeficientes
         ehCo = 1;//variável para contNolar se um numero é ou nao coeficiente
-
-    char c;//Caracter lido da equação
+    char c;//char lido da equação
     char* equacao = (char*)malloc(sizeof(char)*1024); //guarda uma das equacoes da lista
-    char* resultado = (char*)malloc(sizeof(char)*100); //guarda o valor de um resultado
+    char* result = (char*)malloc(sizeof(char)*100); //guarda o valor de um result
     char* coeficiente = (char*)malloc(sizeof(char)*100); //guarda o valor de um coeficiente
-    char* variavelCmp = (char*)malloc(sizeof(char)*100); //guarda temporariamente o nome de uma incognita
-    char** variavel = (char**)malloc(sizeof(char*) * sis -> qtdIcog);
-    for(i = 0; i < sis -> qtdIcog; i++)
+    char* varCm = (char*)malloc(sizeof(char)*100); //guarda temporariamente o nome de uma incognita
+    char** variavel = (char**)malloc(sizeof(char*) * sis -> quantasInc);
+    for(i = 0; i < sis -> quantasInc; i++)
     {
         variavel[i] = (char*)malloc(sizeof(char)*100);
         variavel[i][0] = '\0';
     }
 
-    //Inicializacao da matriz de coeficientes do sistema que será montado;
+    //nova matriz de coeficientes
     sis->matrizCoeficientes = (float**)malloc(sis->lisEqua->qtd * sizeof(float*));
     for(i = 0; i < sis->lisEqua->qtd; i++)
        sis->matrizCoeficientes[i] = (float*)malloc(sis->lisEqua->qtd * sizeof(float));
 
-     //PRIMEIRO FOR PARA DESCOBRIR O NOME DAS ICOGNITAS
+     //ler nomes das inc
     for(i = 0; i < sis -> lisEqua -> qtd; i++)
     {
-        //Já achou todas as icgnitas
-        if(posVariavel >= sis -> qtdIcog)
+        if(posVariavel >= sis -> quantasInc)
             break;
         equacao = (char*)getElemento(sis->lisEqua,i);
         for(n = 0; n < strlen(equacao); n++)
         {
             c = equacao[n];
-            //Quer dizer que o caracter lido eh uma letra
+            //se o char e uma letra
             if(c>=97 && c<=122)
             {
                 variavel[posVariavel][cont] = c;
                 cont++;
             }
-            //Se o caracter for um espaço, acabou o nome da variável
+            //se o char e um espaco (acaba o nome da var)
             else if (cont && c == 32)
             {
                 variavel[posVariavel][cont] = '\0';
@@ -520,18 +515,18 @@ void extraiCoeficientes(Sistema* sis, char* nome)
         }
     }
 
-    sis -> lisIncognitas = lis;
+    sis -> lisInc = lis;
     cont = 0;
 
     //Inicializando os componentes que serao usados no sistema
-    sis -> linhaResultados = (float*)malloc(sizeof(float)*sis -> qtdIcog);
-    sis -> matrizCoeficientes = (float**)malloc(sizeof(float*)*sis -> qtdIcog);
-    for(i = 0; i < sis -> qtdIcog; i++)
-        sis -> matrizCoeficientes[i] = (float*)malloc(sizeof(float) * sis -> qtdIcog);
+    sis -> linhaResultados = (float*)malloc(sizeof(float)*sis -> quantasInc);
+    sis -> matrizCoeficientes = (float**)malloc(sizeof(float*)*sis -> quantasInc);
+    for(i = 0; i < sis -> quantasInc; i++)
+        sis -> matrizCoeficientes[i] = (float*)malloc(sizeof(float) * sis -> quantasInc);
 
 
     //SEGUNDO FOR PARA EXTRAIR OS COEFICIENTES E RESULTADOS
-    for(i = 0; i < sis->qtdIcog; i++)
+    for(i = 0; i < sis->quantasInc; i++)
     {
         equacao = (char*)getElemento(sis->lisEqua,i);
         j = 0;
@@ -540,7 +535,7 @@ void extraiCoeficientes(Sistema* sis, char* nome)
         {
             c = equacao[n];
 
-                //Se o caracter for um numero de coeficiente
+                //se char for um numero
                 if(c >= 43 && c <= 57 && ehCo)
                 {
                     coeficiente[contC] = c;
@@ -552,25 +547,25 @@ void extraiCoeficientes(Sistema* sis, char* nome)
                         contC = 0;
                     }
                 }
-                //se o caracter for um numero do resultado
+                //se o caracter for um numero do result
                 else if(c >= 43 && c <= 57 && !ehCo)
                 {
-                    resultado[contC] = c;
+                    result[contC] = c;
                     contC++;
                 }
-                //Se for o ultimo caracter da equacao, le e insere o resultado
+                //se eh o ultimo num da equacao
                 if(n==strlen(equacao)-1)
                 {
-                    resultado[contC] = '\0';
-                    sis->linhaResultados[i] = strtof(resultado, NULL);
+                    result[contC] = '\0';
+                    sis->linhaResultados[i] = strtof(result, NULL);
                     contC = 0;
 
                 }
 
-                //Caracter eh uma letra
+                //char é letra
                 else if(c>=97 && c<=122)
                 {
-                    variavelCmp[cont] = c;
+                    varCm[cont] = c;
                     cont++;
                 }
                 //se for um igual sabemos que os próximos valores serão resultados
@@ -581,13 +576,13 @@ void extraiCoeficientes(Sistema* sis, char* nome)
                 {   //se for um espaço depois de uma variavel insere o coeficiente
                     if(ehCo && cont)
                     {
-                        variavelCmp[cont] = '\0';
+                        varCm[cont] = '\0';
 
-                        j = getPos(lis, variavelCmp);
+                        j = getPos(lis, varCm);
                         sis->matrizCoeficientes[i][j] = strtof(coeficiente, NULL);
                         cont = 0;
                         contC = 0;
-                        variavelCmp = (char*)malloc(sizeof(char)*100);
+                        varCm = (char*)malloc(sizeof(char)*100);
                     }
                 }
             }
@@ -595,17 +590,17 @@ void extraiCoeficientes(Sistema* sis, char* nome)
 
         free(equacao);
         free(coeficiente);
-        free(resultado);
-        free(variavelCmp);
+        free(result);
+        free(varCm);
 }
 
 void resolveSistema ()
 {
     Sistema sis;
     sis.lisEqua = NULL;
-    sis.lisIncognitas = NULL;
+    sis.lisInc = NULL;
     sis.matrizCoeficientes = NULL;
-    sis.qtdIcog = 0;
+    sis.quantasInc = 0;
 
     char* nome = (char*)malloc(sizeof(char)*100);
 
@@ -615,8 +610,9 @@ void resolveSistema ()
     nome[strlen(nome)] = '\0';
     extraiCoeficientes(&sis, nome);
 
-    printf("Sistema: ");
-    printaSistema(&sis);
+    printf("Sistema | \n");
+    printf("        v  \n");
+    printarSistema(&sis);
     printResultado(&sis);
 
     limparSistema(&sis);
